@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <style>
+        canvas{
+            border: 1px solid;
+            background: cyan;
+        }
+    </style>
+</head>
+<body onload="onLoad()">
+    <canvas id="cvs" width="700" height="700"></canvas>
+    <script>
+        var cvs = document.getElementById("cvs");
+        var ctx = cvs.getContext("2d");
+        var gGame = null;
+        function onLoad() {
+            gGame = new Game();
+            gGame.update();
+        }
+        function Game() {
+            var _this = this;
+            this.artillery = new Artillery();
+            this.bullets = [];
+            this.enemy = [new Enemy(),new Enemy(),new Enemy()];
+            this.artilleryCD = 20;
+            this.enemyCD = 30;
+            this.frame = this.artilleryCD;
+            this.lastframe = 0;
+            this.count = 0;
+            this.score = 0;
+            this.update = function () {
+                _this.frame++;
+                _this.count++;
+                if(_this.count == _this.enemyCD)
+                {
+                    _this.enemy.push(new Enemy());
+                    _this.count = 0;
+                }
+                ctx.clearRect(0,0,cvs.width,cvs.height);
+                _this.artillery.draw();
+                if(_this.bullets.length >= 1) {
+                    _this.bullets.forEach(function (item,index) {
+                        item.updateStatus();
+                        _this.enemy.forEach(function (t,i) {
+                            if(Math.pow(Math.pow(item.x - t.x,2) + Math.pow(item.y - t.y,2),0.5) <= item.bulletRadius + t.enemyRadius)
+                            {
+                                _this.enemy.splice(i,1);
+                                _this.bullets.splice(index,1);
+                                _this.score++;
+                            }
+                        });
+                        if(item.dead){
+                            _this.bullets.splice(index,1);
+                        }
+                        item.draw();
+                    })
+                }
+                if(_this.enemy.length >= 1) {
+                    _this.enemy.forEach(function (item,index) {
+                        item.updateStatus();
+                        if(item.dead){
+                            _this.enemy.splice(index,1);
+                        }
+                        item.draw();
+                    })
+                }
+                ctx.beginPath();
+                ctx.fillStyle = "white";
+                ctx.font = "bold 32px Arial";
+                ctx.fillText("分数：" + _this.score,5,35);
+                ctx.fill();
+                window.requestAnimationFrame(_this.update);
+            };
+            cvs.onclick = function (e) {
+                _this.artillery.angle = Math.atan2(_this.artillery.y - e.pageY + cvs.offsetTop,e.pageX - cvs.offsetLeft - _this.artillery.x) * 180 / Math.PI * -1;
+            };
+            document.onkeydown = function (e) {
+                if(e.keyCode == 32){
+                    if(_this.frame - _this.lastframe >= _this.artilleryCD)
+                    {
+                        _this.bullets.push(new Bullet(_this.artillery.x,_this.artillery.y,_this.artillery.artilleryLength,_this.artillery.angle,_this.artillery.range));
+                        _this.lastframe = _this.frame;
+                    }
+                }
+            }
+        }
+        function Artillery() {
+            var _this = this;
+            this.radius = 80;
+            this.x = cvs.width / 2;
+            this.y = cvs.height;
+            this.artilleryLength = 150;
+            this.angle = -90;
+            this.range = 500;
+            this.draw = function () {
+                ctx.save();
+                ctx.beginPath();
+                ctx.fillStyle = "green";
+                ctx.arc(_this.x,_this.y,_this.radius,Math.PI / 180 * 180,Math.PI / 180 * 360);
+                ctx.fill();
+                ctx.beginPath();
+                ctx.translate(_this.x,_this.y);
+                ctx.rotate(_this.angle * Math.PI / 180);
+                ctx.lineWidth = 25;
+                ctx.strokeStyle = "green";
+                ctx.moveTo(0,0);
+                ctx.lineTo(_this.artilleryLength,0);
+                ctx.stroke();
+                ctx.restore();
+            };
+        }
+        function Bullet(x,y,artilleryLength,angle,range) {
+            var _this = this;
+            this.artilleryx = x;
+            this.artilleryy = y;
+            this.bulletRadius = 10;
+            this.speed = 3;
+            this.artilleryLength = artilleryLength;
+            this.angle = angle;
+            this.x = x + Math.cos(Math.PI / 180 * this.angle) * this.artilleryLength;
+            this.y = y + Math.sin(Math.PI / 180 * this.angle) * this.artilleryLength;
+            this.range = range;
+            this.dead = false;
+            this.draw = function () {
+                ctx.beginPath();
+                ctx.fillStyle = "red";
+                ctx.arc(_this.x,_this.y,_this.bulletRadius,0,Math.PI / 180 * 360);
+                ctx.fill();
+            };
+            this.updateStatus = function () {
+                _this.x += _this.speed * Math.cos(Math.PI / 180 * _this.angle);
+                _this.y += _this.speed * Math.sin(Math.PI / 180 * _this.angle);
+                if(Math.pow(Math.pow(_this.artilleryx - _this.x,2) + Math.pow(_this.artilleryy - _this.y,2),0.5) >= _this.range + _this.artilleryLength)
+                {
+                    _this.dead = true;
+                }
+            }
+        }
+        function Enemy() {
+            var _this = this;
+            this.enemyRadius = 20;
+            this.x = Math.floor(Math.random() * cvs.width);
+            this.y = Math.floor(Math.random() * 300);
+            this.speed = 1;
+            this.angle = Math.floor(Math.random() * 360);
+            this.dead = false;
+            this.draw = function () {
+                ctx.beginPath();
+                ctx.fillStyle = "gray";
+                ctx.arc(_this.x,_this.y,_this.enemyRadius,0,Math.PI / 180 * 360);
+                ctx.fill();
+            };
+            this.updateStatus = function () {
+                _this.x += _this.speed * Math.cos(Math.PI / 180 * _this.angle);
+                _this.y += _this.speed * Math.sin(Math.PI / 180 * _this.angle);
+                if(_this.x + _this.enemyRadius <= 0||_this.x - _this.enemyRadius >= cvs.width ||_this.y + _this.enemyRadius <= 0||_this.y - _this.enemyRadius>= cvs.height){
+                    _this.dead = true;
+                }
+            };
+        }
+    </script>
+</body>
+</html>
