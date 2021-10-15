@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <style>
+        canvas{
+            border: 1px solid;
+            cursor: url("knife.cur"),pointer;
+        }
+    </style>
+</head>
+<body onload="onload();">
+<canvas id="cvs" width="700" height="700"></canvas>
+<script>
+    var cvs = document.getElementById("cvs");
+    var ctx = cvs.getContext("2d");
+    var gGame = null;
+    function onload() {
+        gGame = new Game();
+        gGame.update();
+    }
+    function Game() {
+        var _this = this;
+        this.score = 0;
+        this.fruits = [new Fruits()];
+        this.update = function () {
+            ctx.clearRect(0,0,cvs.width,cvs.height);
+            if(_this.fruits.length >= 1) {
+                _this.fruits.forEach(function (item,index) {
+                    item.updateStatus();
+                    if(item.dead){
+                        _this.fruits.splice(index,1);
+                        _this.fruits.push(new Fruits());
+                    }
+                    item.draw();
+                    item.updatePos();
+                    ctx.beginPath();
+                    ctx.fillStyle = "red";
+                    ctx.font = "bold 24px Arial";
+                    ctx.fillText("分数：" + _this.score,5,25);
+                    ctx.fill();
+                })
+            }
+            window.requestAnimationFrame(_this.update);
+        };
+        cvs.onmousedown = function () {
+            document.onmousemove = function (e) {
+                var x = e.pageX - cvs.offsetLeft;
+                var y = e.pageY - cvs.offsetTop;
+                _this.fruits.forEach(function (item,index) {
+                    if(x >= item.x && x <= item.x + item.fruitsWidth && y >= item.y && y <= item.y + item.fruitsHeight)
+                    {
+                        _this.fruits.splice(index,1);
+                        _this.fruits.push(new Fruits());
+                        _this.score++;
+                    }
+                })
+            }
+        };
+        document.onmouseup = function () {
+            document.onmousedown = null;
+            document.onmousemove = null;
+        }
+    }
+    function Fruits() {
+        var _this = this;
+        this.fruitsWidth = 50;
+        this.fruitsHeight = 50;
+        this.vx = 0;
+        this.vy = 0;
+        this.g = -10;
+        this.t = 0;
+        this.color_r = 0;
+        this.color_g = 0;
+        this.color_b = 0;
+        this.x = (cvs.width - _this.fruitsWidth)/ 2;
+        this.y = cvs.height;
+        this.dead = false;
+        this.draw = function () {
+            ctx.clearRect(0,0,cvs.width,cvs.height);
+            ctx.beginPath();
+            ctx.fillStyle = "rgb(" + _this.color_r + "," + _this.color_g + "," + _this.color_b + ")";
+            ctx.fillRect(_this.x,_this.y,_this.fruitsWidth,_this.fruitsHeight);
+            ctx.fill();
+        };
+        this.updatePos = function () {
+            if(_this.t == 0)
+            {
+                _this.vx = Math.floor(Math.random() * 4 - 2);
+                _this.vy = Math.floor(Math.random() * 3 + 7) * -1;
+                _this.color_r = Math.floor(Math.random() * 256);
+                _this.color_g = Math.floor(Math.random() * 256);
+                _this.color_b = Math.floor(Math.random() * 256);
+            }
+            _this.x += _this.vx * _this.t;
+            _this.y += _this.vy * _this.t - 0.5 * _this.g * _this.t * _this.t;
+            _this.t += 0.01;
+        };
+        this.updateStatus = function () {
+            if(_this.x >= cvs.width || _this.x + _this.fruitsWidth <= 0 || _this.y > cvs.height || _this.y + _this.fruitsHeight <= 0)
+            {
+                _this.dead = true;
+            }
+        };
+    }
+</script>
+</body>
+</html>

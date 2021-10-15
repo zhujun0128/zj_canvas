@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <style>
+        canvas{
+            border: 1px solid;
+        }
+    </style>
+</head>
+<body onload="onLoad()">
+    <canvas id="cvs" width="700" height="700"></canvas>
+    <script>
+        var cvs = document.getElementById("cvs");
+        var ctx = cvs.getContext("2d");
+        var game = null;
+        function onLoad() {
+            game = new Game();
+            game .update();
+        }
+        function Game() {
+            var _this = this;
+            this.fruit = new Fruit();
+            this.update = function () {
+                ctx.clearRect(0,0,cvs.width,cvs.height);
+                _this.fruit.drawFruit();
+                _this.fruit.updatePos();
+                window.requestAnimationFrame(_this.update);
+            }
+        }
+        function Fruit() {
+            var _this = this;
+            var R = Math.floor(Math.random() * 256);
+            var G = Math.floor(Math.random() * 256);
+            var B = Math.floor(Math.random() * 256);
+            this.fruitWidth = 50;
+            this.fruitHeight = 50;
+            this.x = cvs.width / 2 - this.fruitWidth / 2;
+            this.y = cvs.height - this.fruitHeight - 10;
+            this.positionX = this.x;
+            this.positionY = this.y;
+            this.dt = 0;
+            this.angle = Math.PI / 180 * (Math.random() * 60 + 60);
+            this.v = Math.floor(Math.random() * 20 + 60);
+            this.g = -10;
+            this.drawFruit = function () {
+                ctx.fillStyle = "rgb(" + R + "," + G + "," + B +")";
+                ctx.fillRect(_this.x,_this.y,_this.fruitWidth,_this.fruitHeight);
+            };
+            this.updatePos = function () {
+                _this.dt += 0.1;
+                _this.x = _this.positionX + _this.v * Math.cos(_this.angle) * _this.dt;
+                _this.y = _this.positionY - (_this.v * Math.sin(_this.angle) * _this.dt + _this.g * _this.dt * _this.dt / 2);
+
+            }
+        }
+    </script>
+</body>
+</html>
