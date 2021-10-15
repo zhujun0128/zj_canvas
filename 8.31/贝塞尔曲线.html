@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <style>
+        canvas{
+            border: 1px solid;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="mycanvas" width="1500" height="900"></canvas>
+    <script>
+        var cvs = document.getElementById("mycanvas");
+        var ctx = cvs.getContext("2d");
+        var start_xy = [20,600],control_xy = [50,670],end_xy = [120,550];
+        var count = 10;
+        var key = 0,t = 0;
+        var flag = null;
+        for(var i = 2;i < count * 2;i += 2)
+        {
+            start_xy.push(end_xy[i - 2]);
+            start_xy.push(end_xy[i - 1]);
+            var cx = Math.floor(Math.random() * 50 + start_xy[i]);
+            var cy = Math.floor(Math.random() * 100 + start_xy[i + 1]);
+            control_xy.push(cx);
+            control_xy.push(cy);
+            var ex = control_xy[i] + 100;
+            var ey = Math.floor(control_xy[i + 1] - Math.random() * 150);
+            end_xy.push(ex);
+            end_xy.push(ey);
+        }
+        function drawQua() {
+            for(var i = 0;i <start_xy.length;i += 2)
+            {
+                ctx.beginPath();
+                ctx.moveTo(start_xy[i],start_xy[i+1]);
+                ctx.quadraticCurveTo(control_xy[i],control_xy[i+1],end_xy[i],end_xy[i+1]);
+                ctx.stroke();
+            }
+        }
+        function drawArc() {
+            if(t >= 1)
+            {
+                key += 2;
+                t = 0;
+            }
+            if(key >= start_xy.length)
+            {
+                window.cancelAnimationFrame(flag);
+                return ;
+            }
+            ctx.clearRect(0,0,cvs.width,cvs.height);
+            drawQua();
+            var x = (1 - t) * (1 - t) * start_xy[key] + 2 * t * (1 - t) * control_xy[key] + t * t * end_xy[key];
+            var y = (1 - t) * (1 - t) * start_xy[key + 1] + 2 * t * (1 - t) * control_xy[key + 1] + t * t * end_xy[key + 1];
+            ctx.beginPath();
+            ctx.arc(x,y,12,0,Math.PI / 180 * 360);
+            ctx.fillStyle = "rgba(100,160,180,0.8)";
+            ctx.fill();
+            ctx.beginPath();
+            ctx.arc(x,y,2,0,Math.PI / 180 * 360);
+            ctx.fillStyle = "red";
+            ctx.fill();
+            t += 0.01;
+            flag = window.requestAnimationFrame(drawArc);
+        }
+        drawArc();
+    </script>
+</body>
+</html>

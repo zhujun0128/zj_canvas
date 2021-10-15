@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <style>
+        canvas{
+            border: 1px solid;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="mycanvas" width="600" height="600"></canvas>
+    <script>
+        var cvs = document.getElementById("mycanvas");
+        var ctx = cvs.getContext("2d");
+        var obj = [{num:10,name:"米饭",color:"green"},{num:50,name:"稀饭",color:"red"},{num:20,name:"油条",color:"blue"},{num:40,name:"包子",color:"orange"},{num:30,name:"豆浆",color:"pink"}];
+        var sum = 0;
+        var state = 0;
+        obj.forEach(function (t) {
+            sum += t.num;
+        });
+        for(var i = 0;i < obj.length;i++)
+        {
+            var deg = Math.PI /180 * obj[i].num / sum * 360;
+            ctx.beginPath();
+            ctx.moveTo(200,200);
+            ctx.arc(200,200,100,state,state += deg);
+            ctx.closePath();
+            ctx.fillStyle = obj[i].color;
+            ctx.fill();
+
+            ctx.beginPath();
+            ctx.moveTo(200,200);
+            ctx.lineTo(200 + 150 * Math.cos(state - deg / 2),200 + 150 * Math.sin(state - deg / 2));
+            ctx.lineWidth = 2;
+            ctx.strokeStyle = obj[i].color;
+            ctx.font = "14px Arial";
+            ctx.strokeText(obj[i].name,200 + 150 * Math.cos(state - deg / 2),200 + 150 * Math.sin(state - deg / 2));
+            ctx.stroke();
+        }
+    </script>
+</body>
+</html>
