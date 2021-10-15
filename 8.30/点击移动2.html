@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <style>
+        canvas{
+            border: 1px solid;
+        }
+    </style>
+</head>
+<body onload="onLoad()">
+    <canvas id="cvs" width="700" height="700"></canvas>
+    <script>
+        var cvs = document.getElementById("cvs");
+        var ctx = cvs.getContext("2d");
+        var gGame = null;
+        function onLoad() {
+            gGame = new Game();
+            gGame.update();
+        }
+        function Game() {
+            var _this = this;
+            this.x = 100;
+            this.y = 100;
+            this.targetX = this.x;
+            this.targetY = this.y;
+            this.speed = 1;
+            this.dt = 1;
+            this.draw = function () {
+                ctx.clearRect(0,0,cvs.width,cvs.height);
+                ctx.fillStyle = "green";
+                ctx.fillRect(_this.x,_this.y,100,100);
+                ctx.fillStyle = "red";
+                ctx.font = "bold 20px Arial";
+                ctx.fillText("坦克",_this.x,_this.y);
+            };
+            this.update = function () {
+                var dx = _this.targetX -_this.x;
+                var dy = _this.targetY - _this.y;
+                var expectDis = Math.sqrt(dx * dx + dy * dy);
+                var realityDis = _this.speed * _this.dt;
+                if(realityDis >= expectDis)
+                {
+                    _this.x = _this.targetX;
+                    _this.y = _this.targetY;
+                }
+                else
+                {
+                    var angle = Math.atan2(dy,dx);
+                    _this.x += realityDis * Math.cos(angle);
+                    _this.y += realityDis * Math.sin(angle);
+                }
+                _this.draw();
+                window.requestAnimationFrame(_this.update);
+            };
+            cvs.onclick = function (e) {
+                _this.targetX = e.pageX - cvs.offsetLeft;
+                _this.targetY = e.pageY - cvs.offsetTop;
+            }
+        }
+    </script>
+</body>
+</html>

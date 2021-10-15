@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <style>
+        canvas{
+            border: 1px solid;
+        }
+    </style>
+</head>
+<body onload="onLoad();">
+    <canvas id="mycanvas" width="600" height="600"></canvas>
+    <script>
+        var cvs = document.getElementById("mycanvas");
+        var ctx = cvs.getContext("2d");
+        var cvsWidth = cvs.width;
+        var cvsHeight = cvs.height;
+        function onLoad() {
+            gGame = new Game();
+            gGame.update();
+        }
+        function Game() {
+            var _this = this;
+            this.tank = new Tank();
+            this.bullets = [];
+            this.enemy = new Enemy();
+            this.update = function () {
+                ctx.clearRect(0,0,cvs.width,cvs.height);
+                _this.tank.isCollision();
+                _this.tank.draw();
+                _this.tank.updatePos();
+                _this.enemy.isCollision();
+                _this.enemy.draw();
+                _this.enemy.updatePos();
+                if(_this.bullets.length >= 1) {
+                    _this.bullets.forEach(function (item,index) {
+                        item.updateStatus();
+                        if(item.dead){
+                            _this.bullets.splice(index,1);
+                        }
+                        item.draw();
+                        item.updatePos();
+                    })
+                }
+                window.requestAnimationFrame(_this.update);
+            };
+            document.onkeydown = function (e) {
+                if(e.keyCode == 32){
+                    var dx = _this.enemy.x - (_this.tank.x + 100);
+                    var dy = _this.enemy.y - (_this.tank.y + 50);
+                    var angle = Math.atan2(dy,dx);//弧度值
+                    _this.bullets.push(new Bullet(_this.tank.x,_this.tank.y,angle));
+                }
+            }
+        }
+        //公有的属性和方法
+        function CommonMoveObj(text,color,objWidth,objHeight) {
+            var _this = this;
+            this.x;
+            this.y;
+            this.speed;
+            this.dt;
+            this.angle;
+            //把坦克画在画布上
+            this.draw = function () {
+                ctx.fillStyle = color;
+                ctx.fillRect(_this.x,_this.y,objWidth,objHeight);
+                ctx.font = "bold 30px Arial";
+                ctx.fillStyle = "red";
+                ctx.fillText(text,_this.x,_this.y);
+            };
+            //使坦克行动起来
+            this.updatePos = function () {
+                _this.x += _this.speed * _this.dt * Math.cos(Math.PI / 180 * _this.angle);
+                _this.y += _this.speed * _this.dt * Math.sin(Math.PI / 180 * _this.angle);
+            };
+            //碰撞反弹
+            this.isCollision = function () {
+                if(_this.x <= 0 || _this.x >= cvsWidth -objWidth || _this.y <= 0|| _this.y >= cvsHeight -objHeight){
+                    _this.angle -= 180;
+                }
+            }
+        }
+        function Tank() {
+            //通过构造继承
+            var tankWidth = 100;
+            var tankHeight = 100;
+            CommonMoveObj.call(this,"坦克","green",tankWidth,tankHeight);
+            this.x = Math.random() * (cvsWidth - tankWidth);
+            this.y = Math.random() * (cvsHeight - tankHeight);
+            this.speed = 2;
+            this.dt = 1;
+            this.angle = Math.ceil(Math.random() * 360);
+        }
+        function Bullet(x,y,angle) {
+            //x,y代表的是坦克的坐标
+            var _this = this;
+            var bulletWidth = 30;
+            var bulletHeight = 30;
+            this.x = x + 100;
+            this.y = y + 50;
+            this.speed = 5;
+            this.dt = 1;
+            this.angle = angle;
+            this.dead = false;
+            //把子弹画到画布上
+            this.draw = function () {
+                ctx.fillStyle = "red";
+                ctx.fillRect(_this.x,_this.y,bulletWidth,bulletHeight);
+            };
+            //更新子弹的位置
+            this.updatePos = function () {
+                _this.x += _this.speed * _this.dt * Math.cos(_this.angle);
+                _this.y += _this.speed * _this.dt * Math.sin(_this.angle);
+            };
+            //碰撞改变子弹状态
+            this.updateStatus = function () {
+                if(_this.x <= 0 || _this.x >= cvsWidth -bulletWidth || _this.y <= 0|| _this.y >= cvsHeight - bulletHeight){
+                    _this.dead = true;
+                }
+            }
+        }
+        function Enemy() {
+            var enemyWidth = 50;
+            var enemyHeight = 50;
+            CommonMoveObj.call(this,"敌人","pink",enemyWidth,enemyHeight);
+            this.x = 500;
+            this.y = 500;
+            this.speed = 1;
+            this.dt = 1;
+            this.angle = Math.ceil(Math.random() * 360);
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <style>
+        canvas{
+            border: 1px solid;
+        }
+    </style>
+</head>
+<body onload="onLoad();">
+<canvas id="mycanvas" width="600" height="600"></canvas>
+<script>
+    var cvs = document.getElementById("mycanvas");
+    var ctx = cvs.getContext("2d");
+    var cvsWidth = cvs.width;
+    var cvsHeight = cvs.height;
+    var gGame = null;
+    function  onLoad() {
+        gGame = new Game();
+        gGame.update();
+    }
+    function Game() {
+        var _this = this;
+        this.tank = new Tank();
+        this.update = function () {
+            ctx.clearRect(0,0,cvs.width,cvs.height);
+            _this.tank.isCollision();
+            _this.tank.draw();
+            _this.tank.updatePos();
+            window.requestAnimationFrame(_this.update)
+        }
+    }
+    function Tank() {
+        var _this = this;
+        this.tankWidth = 100;
+        this.tankHeight = 100;
+        this.x = Math.floor(Math.random() * (cvsWidth - this.tankWidth));
+        this.y = Math.floor(Math.random() * (cvsHeight - this.tankHeight));
+        this.speed = 2;
+        this.dt = 1;
+        this.shells = new Shell();
+        this.enemy = new Enemy();
+        this.angle =  Math.floor(Math.random() * 360);
+        this.draw = function () {
+            ctx.fillStyle = "green";
+            ctx.fillRect(_this.x,_this.y,_this.tankWidth,_this.tankHeight);
+            ctx.fillStyle = "red";
+            ctx.font = "bold 24px Arial";
+            ctx.fillText("坦克",_this.x,_this.y);
+        };
+        this.updatePos = function () {
+            _this.x += _this.speed * _this.dt * Math.cos(Math.PI / 180 * _this.angle);
+            _this.y += _this.speed *  _this.dt * Math.sin(Math.PI / 180 * _this.angle);
+            _this.enemy.isCollision();
+            _this.enemy.draw();
+            _this.enemy.updatePos();
+            _this.shells.draw();
+        };
+        this.isCollision = function () {
+            if(_this.x <= 0||_this.x >= cvsWidth - _this.tankWidth||_this.y <= 0||_this.y >= cvsHeight - _this.tankHeight){
+                _this.angle -= 180;
+            }
+        };
+        document.onkeydown = function (e) {
+            if(e.keyCode == 32)
+            {
+                var dx = _this.enemy.x + _this.enemy.enemyWidth / 2 - _this.x - _this.tankWidth;
+                var dy = _this.enemy.y + _this.enemy.enemyHeight / 2 - _this.y - _this.tankHeight;
+                var ang = Math.atan(dy / dx) / (2 * Math.PI) * 360;
+                if(dx < 0)
+                {
+                    ang -= 180;
+                }
+                _this.shells.add(_this.x  + _this.tankWidth,_this.y + _this.tankHeight / 2 - 10,ang);
+            }
+        }
+    }
+    function Enemy() {
+        var _this = this;
+        this.enemyWidth = 100;
+        this.enemyHeight = 30;
+        this.x = Math.floor(Math.random() * (cvsWidth - this.enemyWidth));
+        this.y = Math.floor(Math.random() * (cvsHeight - this.enemyHeight));
+        this.speed = 1;
+        this.dt = 1;
+        this.angle =  Math.floor(Math.random() * 360);
+        this.draw = function () {
+            ctx.fillStyle = "green";
+            ctx.strokeRect(_this.x,_this.y,_this.enemyWidth,_this.enemyHeight);
+            ctx.fillStyle = "red";
+            ctx.font = "bold 24px Arial";
+            ctx.strokeText("敌人",_this.x + 25,_this.y + 25);
+        };
+        this.updatePos = function () {
+            _this.x += _this.speed * _this.dt * Math.cos(Math.PI / 180 * _this.angle);
+            _this.y += _this.speed *  _this.dt * Math.sin(Math.PI / 180 * _this.angle);
+        };
+        this.isCollision = function () {
+            if(_this.x <= 0||_this.x >= cvsWidth - _this.enemyWidth||_this.y <= 0||_this.y >= cvsHeight - _this.enemyHeight){
+                _this.angle -= 180;
+            }
+        };
+    }
+    function Shell() {
+        var _this = this;
+        this.shells = new Array();
+        this.speed = 5;
+        this.shellWidth = 30;
+        this.shellHeight = 30;
+        this.add = function (x,y,angle) {
+            _this.shells.push(x);
+            _this.shells.push(y);
+            _this.shells.push(angle);
+        };
+        this.draw = function () {
+            for(var i = 0;i < _this.shells.length;i += 3)
+            {
+                _this.shells[i] += _this.speed * Math.cos(Math.PI / 180 * _this.shells[i+2]);
+                _this.shells[i+1] += _this.speed * Math.sin(Math.PI / 180 * _this.shells[i+2]);
+                ctx.fillRect(_this.shells[i],_this.shells[i+1],_this.shellWidth,_this.shellHeight);
+                if(_this.shells[i] >= cvsWidth - _this.shellWidth || _this.shells[i] <= 0 || _this.shells[i] >= cvsHeight - _this.shellHeight || _this.shells[i] <= 0)
+                {
+                    _this.shells.splice(0,3);
+                }
+            }
+        }
+    }
+</script>
+</body>
+</html>

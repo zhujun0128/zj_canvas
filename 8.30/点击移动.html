@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <style>
+        *{
+            margin: 0;
+            padding: 0;
+        }
+        canvas{
+            border: 1px solid;
+        }
+    </style>
+</head>
+<body onload="onLoad()">
+    <canvas id="mycanvas" width="600" height="600"></canvas>
+    <script>
+        var cvs = document.getElementById("mycanvas");
+        var ctx = cvs.getContext("2d");
+        var gGame = null;
+        function  onLoad() {
+            gGame = new Game();
+            gGame.update();
+        }
+        function Game() {
+            var _this = this;
+            this.tank = new Tank();
+            this.update = function () {
+                ctx.clearRect(0,0,cvs.width,cvs.height);
+                _this.tank.draw();
+                _this.tank.updatePos();
+                window.requestAnimationFrame(_this.update)
+            }
+        }
+        function Tank() {
+            var _this = this;
+            var tankWidth = 100;
+            var tankHeight = 100;
+            var cvsWidth = cvs.width;
+            var cvsHeight = cvs.height;
+            this.x = Math.floor(Math.random() * (cvsWidth - tankWidth));
+            this.y = Math.floor(Math.random() * (cvsHeight - tankHeight));
+            this.endx = this.x;
+            this.endy = this.y;
+            this.dx = 0;
+            this.dy = 0;
+            this.count = 20;
+            this.key = 0;
+            this.draw = function () {
+                ctx.fillStyle = "green";
+                ctx.fillRect(_this.x,_this.y,tankWidth,tankHeight);
+                ctx.fillStyle = "red";
+                ctx.font = "bold 24px Arial";
+                ctx.fillText("坦克",_this.x,_this.y);
+            };
+            this.updatePos = function () {
+                if(_this.key < _this.count)
+                {
+                    _this.x += _this.dx;
+                    _this.y += _this.dy;
+                    _this.key++;
+                }
+                if(_this.key == _this.count)
+                {
+                    _this.x = _this.endx;
+                    _this.y = _this.endy;
+                }
+            };
+            cvs.onclick = function (e) {
+                _this.endx = e.clientX;
+                _this.endy = e.clientY;
+                _this.dx = (_this.endx - _this.x)/ _this.count;
+                _this.dy = (_this.endy - _this.y)/ _this.count;
+                _this.key = 0;
+            };
+        }
+    </script>
+</body>
+</html>
